@@ -29,6 +29,7 @@
 
 struct MotorDriverContext{
 	int gpioHandlerId;
+	uint64_t maxDuty;
 };
 
 int32_t motorDriverMotorAccel(MotorDriverHandler handler, uint32_t motorid, int16_t accel){
@@ -60,10 +61,10 @@ int32_t motorDriverMotorAccel(MotorDriverHandler handler, uint32_t motorid, int1
 
 	// decide duty
 	if(accel < 0){
-		duty = (unsigned int)(((uint64_t)(-1*accel)*500000ULL)/(uint64_t)SHRT_MAX);
+		duty = (unsigned int)(((uint64_t)(-1*accel)*(pCtx->maxDuty))/(uint64_t)SHRT_MAX);
 	}
 	else {
-		duty = (unsigned int)(((uint64_t)accel*500000ULL)/(uint64_t)SHRT_MAX);
+		duty = (unsigned int)(((uint64_t)accel*(pCtx->maxDuty))/(uint64_t)SHRT_MAX);
 	}
 
 	//printf("duty=%u\n",duty);
@@ -74,8 +75,7 @@ int32_t motorDriverMotorAccel(MotorDriverHandler handler, uint32_t motorid, int1
 	return 0;
 }
 
-
-int32_t motorDriverCreate(MotorDriverHandler *pHandler){
+int32_t motorDriverCreate(struct MotorDriverCreateParam *pParam, MotorDriverHandler *pHandler){
 	struct MotorDriverContext *pNewCtx;
 	int newGpioHandlerId = -1;
 
@@ -92,7 +92,15 @@ int32_t motorDriverCreate(MotorDriverHandler *pHandler){
 		return -1;
 	}
 	pNewCtx->gpioHandlerId = newGpioHandlerId;
-
+	if(pParam->maxDuty <= 0){
+		pNewCtx->maxDuty = 500000ULL;
+	}
+	else if(pParam->maxDuty > 1000000ULL){
+		pNewCtx->maxDuty = 1000000ULL;
+	}
+	else {
+		pNewCtx->maxDuty = pParam->maxDuty;
+	}
 	// initialize GPIO setting
 
 	set_mode(newGpioHandlerId, STBY_PIN, PI_OUTPUT);

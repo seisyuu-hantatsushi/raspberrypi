@@ -9,11 +9,15 @@
 
 struct MotorDriverContext;
 
+struct MotorDriverCreateParam {
+	uint64_t maxDuty;  // MAX 1M(1000000)
+};
+
 typedef struct MotorDriverContext *MotorDriverHandler;
 
 int32_t motorDriverMotorAccel(MotorDriverHandler handler, uint32_t motorid, int16_t accel);
 
-int32_t motorDriverCreate(MotorDriverHandler *pHandler);
+int32_t motorDriverCreate(struct MotorDriverCreateParam *pParam, MotorDriverHandler *pHandler);
 int32_t motorDriverDestroy(MotorDriverHandler handler);
 
 #endif  /* _MOTOR_DRIVER_H_ */
